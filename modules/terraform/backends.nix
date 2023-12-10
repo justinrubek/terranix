@@ -73,9 +73,94 @@ let
     };
   };
 
-in
-{
-
+  httpSubmodule = types.submodule {
+    options = {
+      address = mkOption {
+        type = with types; str;
+        description = ''
+          The address to use for state storage
+        '';
+      };
+      update_method = mkOption {
+        default = "POST";
+        type = with types; str;
+        description = ''
+          The HTTP method to use for state updates
+        '';
+      };
+      lock_address = mkOption {
+        default = null;
+        type = with types; nullOr str;
+        description = ''
+          The address to use for state locking
+        '';
+      };
+      lock_method = mkOption {
+        default = "LOCK";
+        type = with types; str;
+        description = ''
+          The HTTP method to use to lock the state
+        '';
+      };
+      unlock_address = mkOption {
+        default = null;
+        type = with types; nullOr str;
+        description = ''
+          The address to use to unlock the state
+        '';
+      };
+      unlock_method = mkOption {
+        default = "UNLOCK";
+        type = with types; str;
+        description = ''
+          The HTTP method to use to unlock the state
+        '';
+      };
+      username = mkOption {
+        default = null;
+        type = with types; nullOr str;
+        description = ''
+          The username for HTTP authentication
+        '';
+      };
+      password = mkOption {
+        default = null;
+        type = with types; nullOr str;
+        description = ''
+          The password for HTTP authentication
+        '';
+      };
+      skip_cert_verification = mkOption {
+        default = false;
+        type = with types; bool;
+        description = ''
+          Whether or not to skip TLS verification
+        '';
+      };
+      retry_max = mkOption {
+        default = 2;
+        type = with types; int;
+        description = ''
+          The maximum number of retries to make
+        '';
+      };
+      retry_wait_min = mkOption {
+        default = 1;
+        type = with types; int;
+        description = ''
+          The minimum wait time between retries in seconds
+        '';
+      };
+      retry_wait_max = mkOption {
+        default = 30;
+        type = with types; int;
+        description = ''
+          The maximum wait time between retries in seconds
+        '';
+      };
+    };
+  };
+in {
   options.backend.local = mkOption {
     default = null;
     type = with types; nullOr localSubmodule;
@@ -130,9 +215,27 @@ in
     '';
   };
 
+  options.backend.http = mkOption {
+    default = null;
+    type = with types; nullOr httpSubmodule;
+    description = ''
+      http backend
+      https://www.terraform.io/docs/backends/types/http.html
+    '';
+  };
+
+  options.remote_state.http = mkOption {
+    default = { };
+    type = with types; attrsOf httpSubmodule;
+    description = ''
+      http remote state
+      https://www.terraform.io/docs/backends/types/http.html
+    '';
+  };
+
   config =
     let
-      backends = [ "local" "s3" "etcd" ];
+      backends = [ "local" "s3" "etcd" "http" ];
       notNull = element: !(isNull element);
 
       backendConfigurations =
